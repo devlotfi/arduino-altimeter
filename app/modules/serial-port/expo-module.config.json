@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android", "web"],
+  "apple": {
+    "modules": ["SerialPortModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.serialport.SerialPortModule"]
+  }
+}

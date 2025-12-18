@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="expo.modules.serialport" >
+
+    <uses-sdk android:minSdkVersion="24" />
+
+    <!-- Declare USB host feature; optional for devices without USB -->
+    <uses-feature
+        android:name="android.hardware.usb.host"
+        android:required="false" />
+
+    <application>
+
+        <!-- Receiver to handle USB permission results -->
+        <receiver
+            android:name="expo.modules.serialport.UsbPermissionReceiver"
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="expo.serialport.USB_PERMISSION" />
+            </intent-filter>
+        </receiver>
+    </application>
+
+</manifest>
