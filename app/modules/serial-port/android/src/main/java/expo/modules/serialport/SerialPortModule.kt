@@ -4,6 +4,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.hardware.usb.UsbManager
+import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import com.hoho.android.usbserial.driver.UsbSerialDriver
 import com.hoho.android.usbserial.driver.UsbSerialPort
@@ -12,31 +13,73 @@ import com.hoho.android.usbserial.util.SerialInputOutputManager
 import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
+import org.json.JSONObject
 import java.util.concurrent.Executors
 
 enum class ERRORS {
     CANNOT_GET_USB_SERVICE,
     CANNOT_GET_DRIVERS,
-    PERMISSION_REQUIRED
+    PERMISSION_REQUIRED,
+    USB_NOT_CONNECTED,
+    WRITE_FAILED
 }
 
 class SerialPortModule : Module() {
     private lateinit var usbManager: UsbManager;
-
     private var driver: UsbSerialDriver? = null
     private var port: UsbSerialPort? = null
     private var ioManager: SerialInputOutputManager? = null
-
     private val executor = Executors.newSingleThreadExecutor()
-
     private val ACTION_USB_PERMISSION = "expo.serialport.USB_PERMISSION"
+
+    private val usbReceiver = object : android.content.BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            when (intent?.action) {
+                UsbManager.ACTION_USB_DEVICE_DETACHED -> {
+                    val device =
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                            intent.getParcelableExtra(
+                                UsbManager.EXTRA_DEVICE,
+                                android.hardware.usb.UsbDevice::class.java
+                            )
+                        } else {
+                            @Suppress("DEPRECATION")
+                            intent.getParcelableExtra(UsbManager.EXTRA_DEVICE)
+                        }
+
+
+                    if (driver?.device == device) {
+                        disconnect()
+                        sendEvent("onError", bundleOf("code" to "USB_DISCONNECTED"))
+                    }
+                }
+            }
+        }
+    }
+
+    private fun disconnect() {
+        ioManager?.stop()
+        port?.close()
+        ioManager = null
+        port = null
+    }
 
     override fun definition() = ModuleDefinition {
         Name("SerialPortModule")
 
         OnCreate {
             usbManager = (appContext.reactContext?.applicationContext?.getSystemService(Context.USB_SERVICE)
-                ?: throw CodedException(ERRORS.CANNOT_GET_USB_SERVICE.name, "Cannot get usb service", Exception())) as UsbManager;
+                ?: throw CodedException(ERRORS.CANNOT_GET_USB_SERVICE.name, "Cannot get usb service", Exception())) as UsbManager
+            val filter = android.content.IntentFilter().apply {
+                addAction(UsbManager.ACTION_USB_DEVICE_DETACHED)
+            }
+
+            ContextCompat.registerReceiver(
+                appContext.reactContext!!,
+                usbReceiver,
+                filter,
+                ContextCompat.RECEIVER_NOT_EXPORTED
+            )
         }
 
         Function("listDevices") {
@@ -66,7 +109,7 @@ class SerialPortModule : Module() {
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
                 usbManager.requestPermission(driver!!.device, intent)
-                throw CodedException(ERRORS.PERMISSION_REQUIRED.name, "Permission required", Exception())
+                throw CodedException(ERRORS.PERMISSION_REQUIRED.name, "Cannot get drivers", Exception())
             }
 
             port = driver!!.ports.get(0);
@@ -81,21 +124,33 @@ class SerialPortModule : Module() {
                     val chunk = String(data, Charsets.UTF_8)
                     buffer.append(chunk)
 
-                    var newlineIndex: Int
-
-                    // Process all complete lines
                     while (true) {
-                        newlineIndex = buffer.indexOf("\n")
-                        if (newlineIndex == -1) break
+                        val idx = buffer.indexOf("\n")
+                        if (idx == -1) break
 
-                        val line = buffer.substring(0, newlineIndex).trim()
-                        buffer.delete(0, newlineIndex + 1)
+                        val line = buffer.substring(0, idx).trim()
+                        buffer.delete(0, idx + 1)
 
                         if (line.isNotEmpty()) {
-                            this@SerialPortModule.sendEvent(
-                                "onData",
-                                bundleOf("data" to line)
-                            );
+                            try {
+                                // Parse JSON string into a map
+                                val json = JSONObject(line)
+                                val map = mutableMapOf<String, Any>()
+                                json.keys().forEach { key ->
+                                    map[key] = json.get(key)
+                                }
+
+                                this@SerialPortModule.sendEvent(
+                                    "onData",
+                                    bundleOf("data" to map)
+                                )
+                            } catch (e: Exception) {
+                                // fallback: send raw string
+                                this@SerialPortModule.sendEvent(
+                                    "onData",
+                                    bundleOf("data" to line)
+                                )
+                            }
                         }
                     }
                 }
@@ -115,11 +170,25 @@ class SerialPortModule : Module() {
         }
 
         AsyncFunction("disconnect") {
-            ioManager?.stop()
-            port?.close()
-            ioManager = null
-            port = null
+            disconnect()
         }
+
+        AsyncFunction("setQNH") { qnh: Double ->
+            if (port == null) {
+                CodedException(ERRORS.USB_NOT_CONNECTED.name, "Usb not connected", Exception())
+            }
+
+
+            try {
+                // Write to the serial port
+                val commandJson =
+                    """{"command":"SET_QNH","params":{"qnh":$qnh}}""" + "\n"
+                port!!.write(commandJson.toByteArray(Charsets.UTF_8), 1000)
+            } catch (e: Exception) {
+                throw CodedException(ERRORS.WRITE_FAILED.name, "Write failed", Exception())
+            }
+        }
+
 
         Events("onData", "onError")
     }

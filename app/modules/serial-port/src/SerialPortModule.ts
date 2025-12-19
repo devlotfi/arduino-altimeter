@@ -5,6 +5,7 @@ export declare class SerialPortModule extends NativeModule<SerialPortModuleEvent
   listDevices(): Promise<SerialDevice[]>;
   connect(): Promise<void>;
   disconnect(): Promise<void>;
+  setQNH(qnh: number): Promise<void>;
 }
 
 // Load the native module using JSI

@@ -42,7 +42,7 @@ function ToastBase({ icon, text, color }: ToastBaseProps) {
             color={color}
           ></FontAwesomeIcon>
         ) : null}
-        <Text style={{ fontSize: 15, color }}>{text}</Text>
+        <Text style={{ fontSize: 15 }}>{text}</Text>
       </View>
     </View>
   );

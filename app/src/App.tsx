@@ -22,6 +22,7 @@ import { KeyboardContext } from "./context/keyboard-context";
 import SerialProvider from "./provider/serial-provider";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "./toast-config";
+import SettingsProvider from "./provider/settings-provider";
 
 const BottomTabs = createBottomTabNavigator<BottomTabsParamList>();
 
@@ -67,7 +68,7 @@ function BottomTabsComponent() {
                 });
               }
             }}
-            renderIcon={({ route, focused, color }) => {
+            renderIcon={({ route, focused }) => {
               const { options } = descriptors[route.key];
               if (options.tabBarIcon) {
                 return options.tabBarIcon({
@@ -150,14 +151,16 @@ export default function Providers() {
       <PaperProvider theme={colorScheme === "light" ? lightTheme : darkTheme}>
         <AssetsProvider>
           <KeyboardProvider>
-            <SerialProvider>
-              <App></App>
-              <Toast config={toastConfig}></Toast>
-              <StatusBar
-                translucent={true}
-                style={colorScheme === "light" ? "dark" : "light"}
-              ></StatusBar>
-            </SerialProvider>
+            <SettingsProvider>
+              <SerialProvider>
+                <App></App>
+                <Toast config={toastConfig}></Toast>
+                <StatusBar
+                  translucent={true}
+                  style={colorScheme === "light" ? "dark" : "light"}
+                ></StatusBar>
+              </SerialProvider>
+            </SettingsProvider>
           </KeyboardProvider>
         </AssetsProvider>
       </PaperProvider>

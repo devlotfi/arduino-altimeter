@@ -20,4 +20,6 @@ export interface SerialPortModuleInterface {
 
   // Disconnect the current connection
   disconnect(): Promise<void>;
+
+  setQNH(qnh: number): Promise<void>;
 }

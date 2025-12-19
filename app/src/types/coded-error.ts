@@ -1,5 +1,7 @@
+import { Errors } from "./errors";
+
 export interface CodedError {
-  code: string;
+  code: Errors;
 }
 
 export function isCodedError(error: unknown): error is CodedError {

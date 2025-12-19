@@ -1,9 +1,9 @@
 import { PropsWithChildren } from "react";
 import { AssetsContext } from "../context/assets-context";
 import { useAssets } from "expo-asset";
-import LoadingView from "../components/error-view";
-import ErrorView from "../components/error-view";
 import { useFonts } from "expo-font";
+import LoadingView from "../components/loading-view";
+import ErrorView from "../components/error-view";
 
 export default function AssetsProvider({ children }: PropsWithChildren) {
   const [fontsLoaded, fontLoadingError] = useFonts({
@@ -17,7 +17,7 @@ export default function AssetsProvider({ children }: PropsWithChildren) {
     require("../assets/flags/fr.png"),
   ]);
 
-  if (!fontsLoaded || !assets) {
+  if (!fontsLoaded || !assets || assetsLoadingError || fontLoadingError) {
     return <LoadingView></LoadingView>;
   }
   if (assetsLoadingError || fontLoadingError) {

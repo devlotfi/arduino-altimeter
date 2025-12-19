@@ -1,8 +1,9 @@
 import { createContext } from "react";
+import { SerialData } from "../types/serial-data";
 
 interface SerialContextType {
   isConnected: boolean;
-  qnh: number | null;
+  serialData: SerialData | null;
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
   setQNH: (value: number) => Promise<void>;
@@ -10,7 +11,7 @@ interface SerialContextType {
 
 export const SerialContextInitialValue: SerialContextType = {
   isConnected: false,
-  qnh: null,
+  serialData: null,
   async connect() {},
   async disconnect() {},
   async setQNH() {},

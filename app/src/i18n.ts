@@ -3,6 +3,7 @@ import { initReactI18next } from "react-i18next";
 import { EN } from "./translation/en";
 import { AR } from "./translation/ar";
 import { FR } from "./translation/fr";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // the translations
 // (tip move them in a JSON file and import them,
@@ -19,7 +20,21 @@ const resources = {
   },
 };
 
+const languageDetector = {
+  type: "languageDetector" as const,
+  async: true,
+  detect: async (callback: (lng: string) => void) => {
+    const savedLanguage = await AsyncStorage.getItem("LANGUAGE");
+    callback(savedLanguage || "en");
+  },
+  init: () => {},
+  cacheUserLanguage: async (lng: string) => {
+    await AsyncStorage.setItem("LANGUAGE", lng);
+  },
+};
+
 i18n
+  .use(languageDetector)
   .use(initReactI18next) // passes i18n down to react-i18next
   .init({
     debug: __DEV__,
