@@ -1,13 +1,8 @@
-import { KeyboardAvoidingView, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import Text from "../components/text";
-import { ActivityIndicator, Button, Card, useTheme } from "react-native-paper";
+import { Button, Card, useTheme } from "react-native-paper";
 import * as SecureStore from "expo-secure-store";
-import {
-  useIsFetching,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { SecureStorageKeys } from "../types/secure-storage-keys";
 import { useFormik } from "formik";
 import * as yup from "yup";
@@ -17,9 +12,8 @@ import LoadingView from "../components/loading-view";
 import { useTranslation } from "react-i18next";
 import { useContext } from "react";
 import { AssetsContext } from "../context/assets-context";
-import { Image } from "expo-image";
-import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faCheck } from "@fortawesome/free-solid-svg-icons";
+import Toast from "react-native-toast-message";
+import { faSave } from "@fortawesome/free-solid-svg-icons";
 
 function ApiKeyCard({ apiKey }: { apiKey: OptionalNullable<string> }) {
   const theme = useTheme();
@@ -30,6 +24,13 @@ function ApiKeyCard({ apiKey }: { apiKey: OptionalNullable<string> }) {
       await SecureStore.setItemAsync(SecureStorageKeys.API_KEY, apiKey);
       queryClient.resetQueries({
         queryKey: ["API_KEY"],
+      });
+      Toast.show({
+        type: "success",
+        props: {
+          icon: faSave,
+          text: "API key has been saved",
+        },
       });
     },
   });

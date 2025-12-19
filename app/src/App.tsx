@@ -19,8 +19,9 @@ import TitleBar from "./components/title-bar";
 import PageLayout from "./layout/page-layout";
 import { useTranslation } from "react-i18next";
 import { KeyboardContext } from "./context/keyboard-context";
-
-//const SerialPort = requireNativeModule<SerialPortModule>("SerialPortModule");
+import SerialProvider from "./provider/serial-provider";
+import Toast from "react-native-toast-message";
+import { toastConfig } from "./toast-config";
 
 const BottomTabs = createBottomTabNavigator<BottomTabsParamList>();
 
@@ -149,11 +150,14 @@ export default function Providers() {
       <PaperProvider theme={colorScheme === "light" ? lightTheme : darkTheme}>
         <AssetsProvider>
           <KeyboardProvider>
-            <App></App>
-            <StatusBar
-              translucent={true}
-              style={colorScheme === "light" ? "dark" : "light"}
-            ></StatusBar>
+            <SerialProvider>
+              <App></App>
+              <Toast config={toastConfig}></Toast>
+              <StatusBar
+                translucent={true}
+                style={colorScheme === "light" ? "dark" : "light"}
+              ></StatusBar>
+            </SerialProvider>
           </KeyboardProvider>
         </AssetsProvider>
       </PaperProvider>

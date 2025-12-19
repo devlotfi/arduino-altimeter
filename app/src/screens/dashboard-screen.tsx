@@ -6,13 +6,13 @@ import {
   ViewProps,
 } from "react-native";
 import Text from "../components/text";
-import { useTheme } from "react-native-paper";
-import { PropsWithChildren } from "react";
-import { LinearGradient, LinearGradientProps } from "expo-linear-gradient";
-import { IconProp } from "@fortawesome/fontawesome-svg-core";
+import { Button, useTheme } from "react-native-paper";
+import { PropsWithChildren, useContext } from "react";
+import { LinearGradient } from "expo-linear-gradient";
 import { faThermometer } from "@fortawesome/free-solid-svg-icons";
 import { faUsb } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import { SerialContext } from "../context/serial-context";
 
 function MetricCard({ children }: PropsWithChildren) {
   const theme = useTheme();
@@ -81,8 +81,9 @@ function MetricGauge({ children, style, ...props }: ViewProps) {
 
 export default function DashboardScreen() {
   const theme = useTheme();
+  const { isConnected, connect, disconnect } = useContext(SerialContext);
 
-  if (true) {
+  if (!isConnected) {
     return (
       <ScrollView contentContainerStyle={{ padding: 12, flex: 1 }}>
         <View
@@ -93,12 +94,15 @@ export default function DashboardScreen() {
             gap: 20,
           }}
         >
-          <Pressable onPress={() => console.log("lolfqf")}>
-            <MetricGauge style={{ borderStyle: "dashed" }}>
+          <Button onPress={async () => await disconnect()}>disconnect</Button>
+          <Pressable onPress={async () => await connect()}>
+            <MetricGauge
+              style={{ borderStyle: "dashed", borderColor: "#39CE8E" }}
+            >
               <FontAwesomeIcon
                 icon={faUsb}
                 size={30}
-                color={theme.colors.primary}
+                color="#39CE8E"
                 style={{ opacity: 0.8 }}
               ></FontAwesomeIcon>
               <Text style={{ fontSize: 23, fontWeight: "bold" }}>Connect</Text>

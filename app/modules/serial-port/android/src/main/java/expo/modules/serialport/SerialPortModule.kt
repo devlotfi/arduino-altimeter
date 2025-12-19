@@ -9,9 +9,16 @@ import com.hoho.android.usbserial.driver.UsbSerialDriver
 import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.driver.UsbSerialProber
 import com.hoho.android.usbserial.util.SerialInputOutputManager
+import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.util.concurrent.Executors
+
+enum class ERRORS {
+    CANNOT_GET_USB_SERVICE,
+    CANNOT_GET_DRIVERS,
+    PERMISSION_REQUIRED
+}
 
 class SerialPortModule : Module() {
     private lateinit var usbManager: UsbManager;
@@ -29,7 +36,7 @@ class SerialPortModule : Module() {
 
         OnCreate {
             usbManager = (appContext.reactContext?.applicationContext?.getSystemService(Context.USB_SERVICE)
-                ?: throw Exception("Cannot get usb service")) as UsbManager;
+                ?: throw CodedException(ERRORS.CANNOT_GET_USB_SERVICE.name, "Cannot get usb service", Exception())) as UsbManager;
         }
 
         Function("listDevices") {
@@ -47,7 +54,7 @@ class SerialPortModule : Module() {
         AsyncFunction("connect") {
             val availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager);
             if (availableDrivers.isEmpty()) {
-                throw Exception("Cannot get drivers");
+                throw CodedException(ERRORS.CANNOT_GET_DRIVERS.name, "Cannot get drivers", Exception())
             }
             driver = availableDrivers.get(0);
             var connection = usbManager.openDevice(driver!!.getDevice());
@@ -59,7 +66,7 @@ class SerialPortModule : Module() {
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
                 usbManager.requestPermission(driver!!.device, intent)
-                return@AsyncFunction null;
+                throw CodedException(ERRORS.PERMISSION_REQUIRED.name, "Permission required", Exception())
             }
 
             port = driver!!.ports.get(0);
