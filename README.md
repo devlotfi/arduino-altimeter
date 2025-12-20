@@ -67,6 +67,8 @@ THe goal of this project is to create a an altitude sensor system for phones tha
 - BMP280
 - Case (Optional)
 
+<img src="https://raw.githubusercontent.com/devlotfi/arduino-altimeter/master/github-assets/fritzing.png">
+
 ## Configuration
 
 You can change this part of the arduino [script](https://github.com/devlotfi/arduino-altimeter/blob/master/arduino/arduino.ino) to match your needs
