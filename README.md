@@ -29,6 +29,7 @@ THe goal of this project is to create a an altitude sensor system for phones tha
   <img height="50px" src="https://devlotfi.github.io/stack-icons/icons/formik.svg">
   <img height="50px" src="https://devlotfi.github.io/stack-icons/icons/i18n.svg">
   <img height="50px" src="https://devlotfi.github.io/stack-icons/icons/react-native-paper.svg">
+  <img height="50px" src="https://devlotfi.github.io/stack-icons/icons/openweathermap.svg">
   <img height="50px" src="https://devlotfi.github.io/stack-icons/icons/reactnavigation.svg">
   <img height="50px" src="https://devlotfi.github.io/stack-icons/icons/tanstack-query.svg">
   <img height="50px" src="https://devlotfi.github.io/stack-icons/icons/maplibre.svg">
